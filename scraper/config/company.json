@@ -1,0 +1,10 @@
+{
+  "id": "33159615",
+  "company": "EPAM SYSTEMS INTERNATIONAL SRL",
+  "brand": "EPAM",
+  "status": "activ",
+  "location": ["București"],
+  "website": ["https://www.epam.com"],
+  "career": ["https://careers.epam.com"],
+  "scraperFile": "https://github.com/sebiboga/epam-systems-international-srl-nodejs-scraper/actions/workflows/job-seeker-ro-spider.yml"
+}
