@@ -11,8 +11,8 @@
 
 | Field        | Type     | Description |
 |--------------|----------|-------------|
-| brand        | string   | Commercial brand name (e.g. "EPAM") |
-| group        | string   | Parent company group (e.g. "EPAM Systems") |
+| brand        | string   | Commercial brand name (e.g. "FREQUENTIS") |
+| group        | string   | Parent company group (e.g. "Parent Group") |
 | status       | string   | "activ", "suspendat", "inactiv", or "radiat" |
 | location     | string[] | Romanian cities/addresses. DIACRITICS ACCEPTED. Multi-valued array |
 | website      | string[] | Official company website. Must be valid HTTP/HTTPS URL |
@@ -25,4 +25,4 @@
 - Fields marked `string[]` are multi-valued arrays stored as arrays in SOLR/OpenSearch
 - Company status "activ" means jobs should be kept, otherwise remove jobs
 - website and career should be canonical URLs without trailing slash
-- **scraperFile**: Full URL to the GitHub Actions workflow (no raw, e.g. `https://github.com/sebiboga/epam-systems-international-srl-nodejs-scraper/actions/workflows/job-seeker-ro-spider.yml`)
+- **scraperFile**: Full URL to the GitHub Actions workflow (no raw, e.g. `https://github.com/peviitor-scrapers/frequentis-romania-srl-nodejs-scraper/actions/workflows/job-seeker-ro-spider.yml`)

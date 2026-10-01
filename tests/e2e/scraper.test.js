@@ -2,13 +2,13 @@ import { jest } from '@jest/globals';
 import fetch from 'node-fetch';
 
 const API_BASE = 'https://api.peviitor.ro/v1';
-const EPAM_CIF = '33159615';
+const FREQUENTIS_CIF = '25475641';
 
 let HAS_API = false;
 
 async function checkApiAvailability() {
   try {
-    const res = await fetch(`${API_BASE}/scraper/jobs/?cif=${EPAM_CIF}&rows=1`, {
+    const res = await fetch(`${API_BASE}/scraper/jobs/?cif=${FREQUENTIS_CIF}&rows=1`, {
       signal: AbortSignal.timeout(5000)
     });
     return res.ok || res.status === 400;
@@ -49,7 +49,7 @@ import companyConfig from '../../scraper/config/company.js';
 const TEST_CIF = companyConfig.id;
 const TEST_BRAND = companyConfig.brand;
 const COMPANY_NAME = companyConfig.company;
-const EPAM_API_URL = 'https://careers.epam.com/api/jobs/v2/search/careers-i18n?from=0&lang=en&size=5&sortBy=relevance%3Brelocation%3Dasc&websiteLocale=en-us&facets=country%3D8150000000000001155';
+const LISTING_URL = 'https://jobs.frequentis.com/careers/SearchJobs/?1302=%5B858865%5D&1302_format=775&listFilterMode=1';
 
 beforeAll(async () => {
   [HAS_API, HAS_ANAF] = await Promise.all([checkApiAvailability(), checkAnafAvailability()]);
@@ -57,81 +57,45 @@ beforeAll(async () => {
 
 describe('E2E: Full Scraping Pipeline', () => {
 
-  describe('EPAM Careers API — Real Data Fetch', () => {
-    let apiData;
+  describe('FREQUENTIS Careers — Real Data Fetch', () => {
+    let index;
+    let parsedJobs;
 
     beforeAll(async () => {
-      const res = await fetch(EPAM_API_URL, {
-        headers: {
-          'User-Agent': 'job_seeker_ro_spider',
-          'Accept': 'application/json'
-        }
+      index = await import('../../scraper/index.js');
+      const res = await fetch(LISTING_URL, {
+        headers: { 'User-Agent': 'job_seeker_ro_spider', 'Accept': 'text/html' }
       });
-      apiData = await res.json();
-    }, 15000);
+      parsedJobs = index.parseJobListing(await res.text());
+    }, 60000);
 
-    it('should respond with valid job data from EPAM API', () => {
-      expect(apiData.data).toHaveProperty('jobs');
-      expect(Array.isArray(apiData.data.jobs)).toBe(true);
-      expect(apiData.data.jobs.length).toBeGreaterThan(0);
-      expect(apiData.data).toHaveProperty('total');
-      expect(typeof apiData.data.total).toBe('number');
-    }, 10000);
-
-    it('should have Romania jobs with expected fields', () => {
-      const job = apiData.data.jobs[0];
-      expect(job).toHaveProperty('uid');
-      expect(job).toHaveProperty('name');
-      expect(typeof job.name).toBe('string');
-      expect(job).toHaveProperty('city');
+    it('should find jobs on the careers site', () => {
+      expect(parsedJobs.length).toBeGreaterThan(0);
     });
 
-    it('should have Romanian country on at least one job', () => {
-      const allCountries = apiData.data.jobs.flatMap(j =>
-        (j.country || []).map(c => c.name?.toLowerCase())
-      );
-      expect(allCountries.length).toBeGreaterThan(0);
-      expect(allCountries.some(c => c === 'romania')).toBe(true);
+    it('should parse jobs into standardized format', () => {
+      const job = parsedJobs[0];
+      expect(job.url).toMatch(/^https:\/\/jobs\.frequentis\.com\//);
+      expect(job.title.length).toBeGreaterThan(0);
     });
   });
 
   describe('Parse + Transform Pipeline', () => {
     let index;
-    let apiData;
+    let parsedJobs;
 
     beforeAll(async () => {
       index = await import('../../scraper/index.js');
-      const res = await fetch(EPAM_API_URL, {
-        headers: {
-          'User-Agent': 'job_seeker_ro_spider',
-          'Accept': 'application/json'
-        }
+      const res = await fetch(LISTING_URL, {
+        headers: { 'User-Agent': 'job_seeker_ro_spider', 'Accept': 'text/html' }
       });
-      apiData = await res.json();
-    }, 15000);
+      parsedJobs = index.parseJobListing(await res.text());
+    }, 60000);
 
-    it('should parse real EPAM API response into standardized format', () => {
-      const result = index.parseApiJobs(apiData);
-
-      expect(result).toHaveProperty('jobs');
-      expect(result).toHaveProperty('total');
-      expect(result.jobs.length).toBeGreaterThan(0);
-      expect(result.jobs.length).toBeLessThanOrEqual(5);
-
-      const parsed = result.jobs[0];
-      expect(parsed).toHaveProperty('url');
-      expect(parsed.url).toMatch(/^https:\/\/careers\.epam\.com\//);
-      expect(parsed).toHaveProperty('title');
-      expect(parsed).toHaveProperty('workmode');
-      expect(['remote', 'on-site', 'hybrid']).toContain(parsed.workmode);
-      expect(parsed).toHaveProperty('location');
-      expect(Array.isArray(parsed.location)).toBe(true);
-      expect(parsed).toHaveProperty('tags');
-    });
+    const toRaw = (j) => ({ ...j, workmode: 'on-site', location: [j.place], tags: [] });
 
     it('should map parsed jobs to job model', () => {
-      const parsed = index.parseApiJobs(apiData);
-      const model = index.mapToJobModel(parsed.jobs[0], TEST_CIF);
+      const model = index.mapToJobModel(toRaw(parsedJobs[0]), TEST_CIF);
 
       expect(model).toHaveProperty('url');
       expect(model).toHaveProperty('title');
@@ -139,27 +103,23 @@ describe('E2E: Full Scraping Pipeline', () => {
       expect(model).toHaveProperty('cif', TEST_CIF);
       expect(model).toHaveProperty('status', 'scraped');
       expect(model).toHaveProperty('date');
-      expect(model.url).toMatch(/^https:\/\/careers\.epam\.com\//);
+      expect(model.url).toMatch(/^https:\/\/jobs\.frequentis\.com\//);
     });
 
     it('should transform jobs and filter to Romanian locations', () => {
-      const parsed = index.parseApiJobs(apiData);
-      const jobs = parsed.jobs.map(j => index.mapToJobModel(j, TEST_CIF));
+      const jobs = parsedJobs.map(j => index.mapToJobModel(toRaw(j), TEST_CIF));
 
-      const payload = {
-        source: 'epam.com',
+      const transformed = index.transformJobsForSOLR({
+        source: 'jobs.frequentis.com',
         company: COMPANY_NAME,
         cif: TEST_CIF,
         jobs
-      };
-
-      const transformed = index.transformJobsForSOLR(payload);
+      });
 
       expect(transformed.company).toBe(COMPANY_NAME);
       expect(transformed.jobs.length).toBe(jobs.length);
 
       for (const job of transformed.jobs) {
-        expect(job).toHaveProperty('location');
         expect(Array.isArray(job.location)).toBe(true);
         expect(job.location.length).toBeGreaterThan(0);
         expect(job.workmode).toMatch(/^(remote|on-site|hybrid)$/);
@@ -167,9 +127,7 @@ describe('E2E: Full Scraping Pipeline', () => {
     });
 
     it('should produce valid job URLs that are accessible', async () => {
-      const parsed = index.parseApiJobs(apiData);
-
-      for (const job of parsed.jobs.slice(0, 2)) {
+      for (const job of parsedJobs.slice(0, 2)) {
         const res = await fetch(job.url, {
           method: 'HEAD',
           headers: { 'User-Agent': 'job_seeker_ro_spider' }
@@ -188,15 +146,15 @@ describe('E2E: Full Scraping Pipeline', () => {
       company = await import('../../scraper/company.js');
     });
 
-    itIfAnaf('should find EPAM in ANAF and validate active status', async () => {
+    itIfAnaf('should find FREQUENTIS in ANAF and validate active status', async () => {
       const results = await anaf.searchCompany(TEST_BRAND);
 
-      const epam = results.find(c =>
+      const anafMatch = results.find(c =>
         c.cui.toString() === TEST_CIF &&
         c.statusLabel === 'Funcțiune'
       );
-      expect(epam).toBeDefined();
-      expect(epam.cui.toString()).toBe(TEST_CIF);
+      expect(anafMatch).toBeDefined();
+      expect(anafMatch.cui.toString()).toBe(TEST_CIF);
 
       const anafData = await anaf.getCompanyFromANAF(TEST_CIF);
       expect(anafData).toBeDefined();
@@ -211,7 +169,7 @@ describe('E2E: Full Scraping Pipeline', () => {
       expect(result.cif).toBe(TEST_CIF);
 
       if (result.existingJobsCount === 0) {
-        console.log('⚠️ No EPAM jobs in API — skipping job count assertion');
+        console.log('⚠️ No FREQUENTIS jobs in API — skipping job count assertion');
         return;
       }
       expect(result.existingJobsCount).toBeGreaterThan(0);
@@ -251,11 +209,11 @@ describe('E2E: Full Scraping Pipeline', () => {
       api = await import('../../scraper/api.js');
     });
 
-    itIfApi('should have EPAM jobs in API with correct company name', async () => {
+    itIfApi('should have FREQUENTIS jobs in API with correct company name', async () => {
       const result = await api.querySOLR(TEST_CIF);
 
       if (result.numFound === 0) {
-        console.log('⚠️ No EPAM jobs in API — skipping API data verification');
+        console.log('⚠️ No FREQUENTIS jobs in API — skipping API data verification');
         return;
       }
 
@@ -265,7 +223,7 @@ describe('E2E: Full Scraping Pipeline', () => {
       }
     }, 15000);
 
-    itIfApi('should have EPAM company core entry with required fields', async () => {
+    itIfApi('should have FREQUENTIS company core entry with required fields', async () => {
       const companyDoc = await api.getCompanyByCif(TEST_CIF);
 
       expect(companyDoc).toBeDefined();

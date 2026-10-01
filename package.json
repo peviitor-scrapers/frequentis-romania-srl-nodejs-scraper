@@ -1,6 +1,6 @@
 {
-  "name": "scraper-epam-ro",
-  "version": "1.5.2",
+  "name": "scraper-frequentis-ro",
+  "version": "1.0.0",
   "type": "module",
   "main": "scraper/index.js",
   "scripts": {
@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "node-fetch": "^3.3.2",
+    "cheerio": "^1.0.0-rc.12",
     "dotenv": "^16.4.0"
   },
   "devDependencies": {

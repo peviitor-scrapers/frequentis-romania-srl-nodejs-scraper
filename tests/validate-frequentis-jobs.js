@@ -1,5 +1,5 @@
 /**
- * EPAM-Specific Job URL Validator
+ * FREQUENTIS-Specific Job URL Validator
  *
  * Multiple validation modes:
  *   --head      HEAD requests only (fast, default)

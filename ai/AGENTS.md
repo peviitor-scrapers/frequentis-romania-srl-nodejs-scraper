@@ -1,14 +1,14 @@
 # AGENTS.md — Rules for AI agents
 
 ## Project
-EPAM scraper for peviitor.ro (Node.js, ESM, Jest)
+FREQUENTIS scraper for peviitor.ro (Node.js, ESM, Jest)
 
-## 📐 This Repo Is a Template
-This repo is the **reference implementation** for all Node.js scrapers in the peviitor.ro ecosystem. Other scrapers are derived from it.
+## 🌱 This Repo Is a Derived Scraper
+This repo was derived from the [EPAM template](https://github.com/sebiboga/epam-systems-international-srl-nodejs-scraper). Shared behavior (company validation, SOLR/API upsert, markdown generation, tests) comes from the template.
 
 When making changes:
 - **All company-specific identity lives in `scraper/config/company.json`** (id, company, brand, URLs, API params). Read from `scraper/config/company.js` in Node code, or via `jq` in workflows. Never hardcode in source files.
-- **Only the API parsing logic in `scraper/index.js`** (`fetchJobsPage`, `parseApiJobs`) is EPAM-specific. The output shape (`mapToJobModel`, `transformJobsForSOLR`) must stay uniform across derived scrapers.
+- **Only the scraping logic in `scraper/index.js`** (`fetchJobsPage`, `parseJobListing`, `fetchJobDetails`) is Frequentis-specific. The output shape (`mapToJobModel`, `transformJobsForSOLR`) must stay uniform across derived scrapers.
 
 ## Critical Rules
 
@@ -18,7 +18,7 @@ When polling a workflow run with `until [ "$(gh run view ID --json status -q .st
 
 **Always specify the repo explicitly:**
 ```bash
-gh run view <RUN_ID> --repo sebiboga/epam-systems-international-srl-nodejs-scraper --json status -q .status
+gh run view <RUN_ID> --repo peviitor-scrapers/frequentis-romania-srl-nodejs-scraper --json status -q .status
 ```
 
 Before starting any `gh run watch` or polling loop in the background, sanity-check:
@@ -66,6 +66,6 @@ npm run test:consistency   # needs GITHUB_REPOSITORY + GITHUB_TOKEN
 See [MAINTENANCE.md](MAINTENANCE.md) for the full maintenance workflow.
 
 **On every session:**
-1. Check open GitHub issues: `gh issue list --repo sebiboga/epam-systems-international-srl-nodejs-scraper --state open`
+1. Check open GitHub issues: `gh issue list --repo peviitor-scrapers/frequentis-romania-srl-nodejs-scraper --state open`
 2. Prioritize: `critical` → `bug` → `enhancement` → `documentation`
 3. Fix all issues, commit with `#issue` reference, close the issue

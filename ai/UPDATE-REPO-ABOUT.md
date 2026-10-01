@@ -1,7 +1,7 @@
 # Update Repo About
 
 ## Description
-Scraper automat pentru locurile de muncă EPAM SYSTEMS INTERNATIONAL SRL (CIF: 33159615) — extrage din EPAM Careers API, validează via ANAF și publică pe peviitor.ro
+Scraper automat pentru locurile de muncă FREQUENTIS ROMANIA SRL (CIF: 25475641) — extrage de pe site-ul de cariere FREQUENTIS, validează via ANAF și publică pe peviitor.ro
 
 ## Topics (exactly 2, per TOPICS.md)
 - job-seeker-ro-spider

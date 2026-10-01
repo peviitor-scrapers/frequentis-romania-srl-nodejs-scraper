@@ -1,4 +1,5 @@
 import fetch from "node-fetch";
+import * as cheerio from "cheerio";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import { validateAndGetCompany } from "./company.js";
@@ -9,10 +10,8 @@ import scraperConfig from "./config/scraper.js";
 
 const COMPANY_CIF = companyConfig.id;
 const JOB_BASE = scraperConfig.apiBase;
-const ROMANIA_COUNTRY_ID = scraperConfig.apiCountryId;
 
 const TIMEOUT = 10000;
-const PAGE_SIZE = 10;
 
 let COMPANY_NAME = null;
 
@@ -59,95 +58,141 @@ async function searchANOFM(cif) {
   return jobs;
 }
 
+const CAREER_URL = `${JOB_BASE}${scraperConfig.apiListPath}`;
+
+const TAG_PATTERNS = [
+  [/\bjava\b/i, "java"], [/\bjavascript\b/i, "javascript"], [/\bpython\b/i, "python"],
+  [/\bc\+\+/i, "c++"], [/\bc#/i, "c#"], [/\bgo(lang)?\b/i, "go"],
+  [/\breact\b/i, "react"], [/\bangular\b/i, "angular"], [/\bnode(\.js)?\b/i, "node"],
+  [/\baws\b/i, "aws"], [/\bazure\b/i, "azure"], [/\bdocker\b/i, "docker"],
+  [/\bkubernetes\b/i, "kubernetes"], [/\blinux\b/i, "linux"], [/\bagile\b/i, "agile"],
+  [/\bscrum\b/i, "scrum"], [/\brest\b/i, "rest"], [/\bsql\b/i, "sql"],
+  [/\bmicroservices?\b/i, "microservices"], [/\bdevops\b/i, "devops"],
+  [/\bci\/cd\b/i, "ci/cd"], [/\bgit\b/i, "git"], [/\bjenkins\b/i, "jenkins"],
+  [/\bansible\b/i, "ansible"], [/\bpuppet\b/i, "puppet"]
+];
+
 async function fetchJobsPage(pageNum) {
-  const from = (pageNum - 1) * PAGE_SIZE;
-  const url = `${JOB_BASE}/api/jobs/v2/search/careers-i18n?from=${from}&lang=en&size=${PAGE_SIZE}&sortBy=relevance%3Brelocation%3Dasc&websiteLocale=en-us&facets=country%3D${ROMANIA_COUNTRY_ID}`;
+  const url = `${CAREER_URL}?${scraperConfig.romaniaFilter}&page=${pageNum}&sort=date`;
 
   const res = await fetch(url, {
+    timeout: TIMEOUT,
     headers: {
       "User-Agent": "job_seeker_ro_spider",
-      "Accept": "application/json"
+      "Accept": "text/html,application/xhtml+xml"
     }
   });
 
   if (!res.ok) {
-    throw new Error(`API error ${res.status} for page=${pageNum}`);
+    throw new Error(`Search page error ${res.status} for page=${pageNum}`);
   }
 
-  return await res.json();
+  return await res.text();
 }
 
-function parseApiJobs(apiData) {
-  const jobs = apiData.data?.jobs || [];
-  const total = apiData.data?.total || 0;
+function isRomanianJob(url, subtitle) {
+  return /\/ROU-/i.test(url) || /\bromania\b|\bromânia\b/i.test(subtitle || "");
+}
 
-  return {
-    jobs: jobs.map(job => {
-      const vacancyType = job.vacancy_type || "Hybrid";
-      let workmode = "hybrid";
-      if (vacancyType.toLowerCase().includes("remote")) workmode = "remote";
-      else if (vacancyType.toLowerCase().includes("office")) workmode = "on-site";
+function parseJobListing(html) {
+  const $ = cheerio.load(html);
+  const jobs = [];
 
-      const location = [];
-      if (job.city && job.city.length > 0) {
-        for (const c of job.city) {
-          if (c.name) location.push(c.name);
-        }
-      } else if (job.country?.[0]?.name) {
-        location.push(job.country[0].name);
+  $(".list__item__detail").each((_, el) => {
+    const $item = $(el);
+    const $a = $item.find(".list__item__text__title a").first();
+    const href = ($a.attr("href") || "").trim();
+    const title = $a.text().trim();
+    if (!href || !title) return;
+
+    const url = href.startsWith("http") ? href : `${JOB_BASE}${href}`;
+    const subtitle = $item.find(".list__item__text__subtitle").text().replace(/\s+/g, " ").trim();
+
+    if (!isRomanianJob(url, subtitle)) return;
+
+    // Subtitle layout: "<Department> | <Country> | <City>, <County> | <Legal entity>"
+    const segments = subtitle.split("|").map(p => p.trim());
+    const countryIdx = segments.findIndex(p => /^rom[aâ]nia$/i.test(p));
+    const place = (segments[countryIdx + 1] || "").split(",")[0].trim();
+    jobs.push({ url, title, subtitle, place });
+  });
+
+  return jobs;
+}
+
+function detectWorkmode(text) {
+  if (/hybrid/i.test(text)) return "hybrid";
+  if (/remote/i.test(text) && !/on.?site|office/i.test(text)) return "remote";
+  return "on-site";
+}
+
+function extractTags(text) {
+  const tags = TAG_PATTERNS.filter(([re]) => re.test(text)).map(([, tag]) => tag);
+  return [...new Set(tags)].slice(0, 20);
+}
+
+async function fetchJobDetails(url) {
+  try {
+    const res = await fetch(url, {
+      timeout: TIMEOUT,
+      headers: {
+        "User-Agent": "job_seeker_ro_spider",
+        "Accept": "text/html,application/xhtml+xml"
       }
+    });
 
-      const uid = job.uid || "";
-      const seoUrl = job.seo?.url || `/en/vacancy/${uid}_en`;
-      const url = seoUrl.startsWith('http') ? seoUrl : `${JOB_BASE}${seoUrl}`;
+    if (!res.ok) return null;
 
-      const tags = (job.skills || []).map(s => s.toLowerCase());
+    const $ = cheerio.load(await res.text());
+    const bodyText = $("body").text();
 
-      return {
-        url,
-        title: job.name,
-        uid: job.uid,
-        workmode,
-        location,
-        tags
-      };
-    }),
-    total
-  };
+    return { workmode: detectWorkmode(bodyText), tags: extractTags(bodyText) };
+  } catch (err) {
+    console.log(`  Warning: Could not fetch details for ${url}: ${err.message}`);
+    return null;
+  }
 }
 
 async function scrapeAllListings(testOnlyOnePage = false) {
   const allJobs = [];
   const seenUrls = new Set();
+  const seenListingUrls = new Set();
   let page = 1;
-  let totalJobs = 0;
   const MAX_PAGES = 10;
 
   while (true) {
-    console.log(`Fetching API page: ${page}`);
-    const data = await fetchJobsPage(page);
-    const result = parseApiJobs(data);
-    const jobs = result.jobs;
+    console.log(`Fetching search page: ${page}`);
+    const html = await fetchJobsPage(page);
+    const $ = cheerio.load(html);
+    const listingUrls = $(".list__item__text__title a").map((_, a) => $(a).attr("href")).get();
 
-    if (!jobs.length) {
-      console.log(`No jobs found on page ${page}, stopping.`);
+    // The site repeats the last page for out-of-range page numbers.
+    const freshListing = listingUrls.filter(u => !seenListingUrls.has(u));
+    freshListing.forEach(u => seenListingUrls.add(u));
+    if (!freshListing.length) {
+      console.log(`No new listings on page ${page}, stopping.`);
       break;
     }
 
-    if (page === 1) {
-      totalJobs = result.total;
-      console.log(`Total jobs on site: ${totalJobs}`);
+    const pageJobs = parseJobListing(html);
+    let newJobs = 0;
+    for (const job of pageJobs) {
+      if (seenUrls.has(job.url)) continue;
+      seenUrls.add(job.url);
+      console.log(`  Fetching details: ${job.title}`);
+      const details = await fetchJobDetails(job.url);
+      allJobs.push({
+        url: job.url,
+        title: job.title,
+        workmode: details?.workmode || "on-site",
+        location: [job.place || scraperConfig.defaultLocation],
+        tags: details?.tags || []
+      });
+      newJobs++;
+      await sleep(1000);
     }
 
-    let newJobs = 0;
-    for (const job of jobs) {
-      if (!seenUrls.has(job.url)) {
-        seenUrls.add(job.url);
-        allJobs.push(job);
-        newJobs++;
-      }
-    }
-    console.log(`Page ${page}: ${jobs.length} jobs, ${newJobs} new (total: ${allJobs.length})`);
+    console.log(`Page ${page}: ${pageJobs.length} Romanian jobs, ${newJobs} new (total: ${allJobs.length})`);
 
     if (testOnlyOnePage) {
       console.log("Test mode: stopping after page 1.");
@@ -159,16 +204,11 @@ async function scrapeAllListings(testOnlyOnePage = false) {
       break;
     }
 
-    if (newJobs === 0) {
-      console.log(`No new jobs on page ${page}, stopping.`);
-      break;
-    }
-
     page += 1;
     await sleep(1000);
   }
 
-  console.log(`Total unique jobs collected: ${allJobs.length}`);
+  console.log(`Total unique Romanian jobs collected: ${allJobs.length}`);
   return allJobs;
 }
 
@@ -279,7 +319,7 @@ async function main() {
 
     const rawJobs = await scrapeAllListings(testOnlyOnePage);
     const scrapedCount = rawJobs.length;
-    console.log(`Jobs scraped from EPAM Careers website: ${scrapedCount}`);
+    console.log(`Jobs scraped from FREQUENTIS Careers website: ${scrapedCount}`);
 
     if (!testOnlyOnePage) {
       const anofmJobs = await searchANOFM(cif);
@@ -295,7 +335,7 @@ async function main() {
     const jobs = rawJobs.map(job => mapToJobModel(job, cif));
 
     const payload = {
-      source: "epam.com",
+      source: "www.frequentis.com",
       scrapedAt: new Date().toISOString(),
       company: COMPANY_NAME,
       cif: cif,
@@ -357,7 +397,7 @@ async function main() {
     const finalResult = await querySOLR(COMPANY_CIF);
     console.log(`\n=== SUMMARY ===`);
     console.log(`Jobs existing in SOLR before scrape: ${existingCount}`);
-    console.log(`Jobs scraped from EPAM website: ${scrapedCount}`);
+    console.log(`Jobs scraped from FREQUENTIS website: ${scrapedCount}`);
     console.log(`Stale jobs attempted: ${staleUrls.length}`);
     console.log(`Jobs in SOLR after scrape: ${finalResult.numFound}`);
     console.log(`====================`);
@@ -371,7 +411,7 @@ async function main() {
   }
 }
 
-export { parseApiJobs, mapToJobModel, transformJobsForSOLR };
+export { parseJobListing, fetchJobDetails, isRomanianJob, detectWorkmode, extractTags, mapToJobModel, transformJobsForSOLR };
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main();

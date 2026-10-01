@@ -1,4 +1,6 @@
 {
-  "apiBase": "https://careers.epam.com",
-  "apiCountryId": "8150000000000001155"
+  "apiBase": "https://jobs.frequentis.com",
+  "apiListPath": "/careers/SearchJobs/",
+  "romaniaFilter": "1302=%5B858865%5D&1302_format=775&listFilterMode=1",
+  "defaultLocation": "Cluj-Napoca"
 }

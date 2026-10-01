@@ -30,17 +30,17 @@ describe('index.js Component Tests', () => {
 
     it('should keep company uppercase', () => {
       const payload = {
-        source: 'epam.com',
-        company: 'epam systems international srl',
-        cif: '33159615',
+        source: 'www.frequentis.com',
+        company: 'frequentis romania srl',
+        cif: '25475641',
         jobs: [
-          { url: 'https://test.com/1', title: 'Job 1', company: 'epam systems', cif: '33159615' }
+          { url: 'https://test.com/1', title: 'Job 1', company: 'frequentis', cif: '25475641' }
         ]
       };
 
       const result = index.transformJobsForSOLR(payload);
 
-      expect(result.company).toBe('EPAM SYSTEMS INTERNATIONAL SRL');
+      expect(result.company).toBe('FREQUENTIS ROMANIA SRL');
     });
 
     it('should normalize workmode values', () => {
@@ -70,15 +70,15 @@ describe('index.js Component Tests', () => {
   describe('mapToJobModel', () => {
     it('should map raw job to job model format', () => {
       const rawJob = {
-        url: 'https://careers.epam.com/job/123',
+        url: 'https://jobs.frequentis.com/job/123',
         title: 'Senior Developer',
         location: ['Bucharest'],
         tags: ['Java', 'Spring'],
         workmode: 'hybrid'
       };
 
-      const COMPANY_NAME = 'EPAM SYSTEMS INTERNATIONAL SRL';
-      const COMPANY_CIF = '33159615';
+      const COMPANY_NAME = 'FREQUENTIS ROMANIA SRL';
+      const COMPANY_CIF = '25475641';
 
       const result = index.mapToJobModel(rawJob, COMPANY_CIF, COMPANY_NAME);
 
@@ -99,7 +99,7 @@ describe('index.js Component Tests', () => {
         title: 'Job 1'
       };
 
-      const result = index.mapToJobModel(rawJob, '33159615');
+      const result = index.mapToJobModel(rawJob, '25475641');
 
       expect(result.location).toBeUndefined();
       expect(result.tags).toBeUndefined();
@@ -109,112 +109,76 @@ describe('index.js Component Tests', () => {
     it('should handle missing title', () => {
       const rawJob = { url: 'https://test.com/1' };
 
-      const result = index.mapToJobModel(rawJob, '33159615');
+      const result = index.mapToJobModel(rawJob, '25475641');
 
       expect(result.title).toBeUndefined();
       expect(result.url).toBe('https://test.com/1');
     });
   });
 
-  describe('parseApiJobs', () => {
-    it('should parse EPAM API response format', () => {
-      const apiData = {
-        data: {
-          total: 100,
-          jobs: [
-            {
-              uid: '123',
-              name: 'Senior Developer',
-              city: [{ name: 'Bucharest' }],
-              country: [{ name: 'Romania' }],
-              vacancy_type: 'Hybrid',
-              skills: ['Java', 'Spring']
-            }
-          ]
-        }
-      };
+  describe('parseJobListing', () => {
+    const item = (href, title, subtitle) => `
+      <div class="list__item__detail">
+        <div class="list__item__text">
+          <div class="list__item__text__title"><a href="${href}">${title}</a></div>
+          <div class="list__item__text__subtitle collapaseIcon">${subtitle}</div>
+        </div>
+      </div>`;
 
-      const result = index.parseApiJobs(apiData);
+    it('should parse Romanian jobs from listing HTML', () => {
+      const html = item(
+        'https://jobs.frequentis.com/careers/JobDetail/ROU-DevOps-Engineer-MosaiX/3319',
+        'DevOps Engineer - MosaiX',
+        'Air Traffic Management | Romania | Cluj-Napoca, Cluj | FREQUENTIS Romania SRL'
+      );
 
-      expect(result.jobs).toHaveLength(1);
-      expect(result.jobs[0].title).toBe('Senior Developer');
-      expect(result.jobs[0].location).toEqual(['Bucharest']);
-      expect(result.jobs[0].workmode).toBe('hybrid');
+      const jobs = index.parseJobListing(html);
+
+      expect(jobs).toHaveLength(1);
+      expect(jobs[0].title).toBe('DevOps Engineer - MosaiX');
+      expect(jobs[0].url).toBe('https://jobs.frequentis.com/careers/JobDetail/ROU-DevOps-Engineer-MosaiX/3319');
+      expect(jobs[0].place).toBe('Cluj-Napoca');
     });
 
-    it('should handle empty job list', () => {
-      const apiData = { data: { total: 0, jobs: [] } };
+    it('should skip jobs outside Romania', () => {
+      const html = item(
+        'https://jobs.frequentis.com/careers/JobDetail/FUSA-Financial-Analyst/3670',
+        'Financial Analyst',
+        'United States | Maryland, Columbia | FREQUENTIS USA, Inc.'
+      );
 
-      const result = index.parseApiJobs(apiData);
-
-      expect(result.jobs).toEqual([]);
+      expect(index.parseJobListing(html)).toEqual([]);
     });
 
-    it('should handle missing data field', () => {
-      const result = index.parseApiJobs({});
+    it('should resolve relative URLs against the careers site', () => {
+      const html = item('/careers/JobDetail/ROU-Test/1', 'Test', 'IT | Romania | Cluj-Napoca, Cluj | FREQUENTIS Romania SRL');
 
-      expect(result.jobs).toEqual([]);
+      expect(index.parseJobListing(html)[0].url).toBe('https://jobs.frequentis.com/careers/JobDetail/ROU-Test/1');
     });
 
-    it('should handle multiple cities', () => {
-      const apiData = {
-        data: {
-          total: 1,
-          jobs: [
-            {
-              uid: '123',
-              name: 'Developer',
-              city: [{ name: 'Bucharest' }, { name: 'Cluj-Napoca' }],
-              country: [{ name: 'Romania' }]
-            }
-          ]
-        }
-      };
-
-      const result = index.parseApiJobs(apiData);
-
-      expect(result.jobs[0].location).toEqual(['Bucharest', 'Cluj-Napoca']);
+    it('should handle empty HTML', () => {
+      expect(index.parseJobListing('')).toEqual([]);
     });
   });
 
-  describe('URL Generation', () => {
-    it('should use seo.url when available', () => {
-      const apiData = {
-        data: {
-          total: 1,
-          jobs: [
-            {
-              uid: 'blt123',
-              name: 'Test Job',
-              seo: { url: '/en/vacancy/test-job-blt123_en' },
-              city: [{ name: 'Bucharest' }]
-            }
-          ]
-        }
-      };
+  describe('isRomanianJob', () => {
+    it('should detect Romania by URL prefix or subtitle', () => {
+      expect(index.isRomanianJob('https://x/JobDetail/ROU-Dev/1', '')).toBe(true);
+      expect(index.isRomanianJob('https://x/JobDetail/FCO-Dev/1', 'IT | Romania | Cluj')).toBe(true);
+      expect(index.isRomanianJob('https://x/JobDetail/FCO-Dev/1', 'IT | Germany')).toBe(false);
+    });
+  });
 
-      const result = index.parseApiJobs(apiData);
-
-      expect(result.jobs[0].url).toBe('https://careers.epam.com/en/vacancy/test-job-blt123_en');
+  describe('detectWorkmode / extractTags', () => {
+    it('should detect workmode from text', () => {
+      expect(index.detectWorkmode('This is a hybrid role')).toBe('hybrid');
+      expect(index.detectWorkmode('Fully remote position')).toBe('remote');
+      expect(index.detectWorkmode('Office based')).toBe('on-site');
     });
 
-    it('should fallback to uid-based URL when no seo.url', () => {
-      const apiData = {
-        data: {
-          total: 1,
-          jobs: [
-            {
-              uid: 'blt456',
-              name: 'Test Job',
-              city: [{ name: 'Bucharest' }]
-            }
-          ]
-        }
-      };
-
-      const result = index.parseApiJobs(apiData);
-
-      expect(result.jobs[0].url).toBe('https://careers.epam.com/en/vacancy/blt456_en');
+    it('should extract known technology tags', () => {
+      expect(index.extractTags('Experience with Java, Linux and Docker')).toEqual(['java', 'docker', 'linux']);
+      expect(index.extractTags('No relevant skills')).toEqual([]);
     });
   });
 });

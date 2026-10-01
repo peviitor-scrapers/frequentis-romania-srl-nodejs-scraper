@@ -1,27 +1,29 @@
-# Robots.txt Analysis — EPAM Careers
+# Robots.txt Analysis — Frequentis Careers
 
-Sursa: https://careers.epam.com/robots.txt
+Sursa: https://jobs.frequentis.com/robots.txt
 
-## Reguli
+## Reguli relevante
 
 ```
 User-agent: *
-Disallow: /
+Allow: /careers
+Disallow: /careers/*qtvc=
 ```
 
 ## Interpretare
 
 | Cale | Accesibil? | Ce conține |
 |---|---|---|
-| `/` | ❌ Disallowed | Tot site-ul |
-| API (`/api/jobs/v2/...`) | ❌ Disallowed | API-ul JSON de la care scraper-ul extrage datele |
+| `/careers/SearchJobs/` | ✅ Allowed | Lista de job-uri (filtrată pe România prin parametri de query) |
+| `/careers/JobDetail/...` | ✅ Allowed | Pagina unui job |
+| `/careers/*qtvc=` | ❌ Disallowed | Parametrul `qtvc` — scraper-ul nu îl folosește |
 
 ## Recomandare
 
-robots.txt NU este legal binding, dar reprezintă intenția proprietarului site-ului.
+Scraper-ul cere doar `/careers/SearchJobs/` (cu parametrii de filtrare pe România și `page`/`sort`) și paginile `/careers/JobDetail/...` ale joburilor din România, cu 1s delay între cereri și User-Agent `job_seeker_ro_spider`.
 
-- API-ul `/api/jobs/v2/search/...` e **disallowed** de robots.txt. În practică, serverul răspunde cu 200 OK cu `User-Agent` normal și fără autentificare.
-- Paginile individuale de job sunt și ele disallowed. Noi nu le scraper-uim direct — doar le verificăm accesibilitatea (HEAD request) în teste.
-- Scraperul curent face o singură cerere per pagină (10 job-uri) cu delay de 1s între pagini — comportament rezonabil, nu agresiv.
+**Concluzie**: Risc minim — căile folosite sunt explicit permise.
 
-**Concluzie**: Risc minim. API-ul e public, răspunde fără autentificare, iar scraperul e politicos (rate limiting, User-Agent standard, o singură cerere simultană).
+## Diferență față de EPAM template
+
+EPAM Careers dezactivează API-ul prin robots.txt; Frequentis permite `/careers`, deci scraper-ul nu are această limitare.
