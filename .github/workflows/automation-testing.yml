@@ -151,7 +151,7 @@ jobs:
         run: |
           npm run test:unit
           sed -i 's|<title>Test Report</title>|<title>Pre-scrape: Unit Tests — FREQUENTIS ROMANIA SRL</title>|;s|<h1 id="title">Test Report</h1>|<h1 id="title">Pre-scrape: Unit Tests — FREQUENTIS ROMANIA SRL</h1>|' test-report.html
-          cp test-report.html docs/test-results/pre-scrape-unit.html || true
+          mkdir -p docs/test-results && cp test-report.html docs/test-results/pre-scrape-unit.html || true
           
       - name: Upload Unit Test Results
         uses: actions/upload-artifact@v7
@@ -164,7 +164,7 @@ jobs:
         run: |
           npm run test:integration
           sed -i 's|<title>Test Report</title>|<title>Pre-scrape: Integration Tests — FREQUENTIS ROMANIA SRL</title>|;s|<h1 id="title">Test Report</h1>|<h1 id="title">Pre-scrape: Integration Tests — FREQUENTIS ROMANIA SRL</h1>|' test-report.html
-          cp test-report.html docs/test-results/pre-scrape-integration.html || true
+          mkdir -p docs/test-results && cp test-report.html docs/test-results/pre-scrape-integration.html || true
           
       - name: Upload Integration Test Results
         uses: actions/upload-artifact@v7
@@ -177,7 +177,7 @@ jobs:
         run: |
           npm run test:e2e
           sed -i 's|<title>Test Report</title>|<title>Post-scrape: E2E Tests — FREQUENTIS ROMANIA SRL</title>|;s|<h1 id="title">Test Report</h1>|<h1 id="title">Post-scrape: E2E Tests — FREQUENTIS ROMANIA SRL</h1>|' test-report.html
-          cp test-report.html docs/test-results/post-scrape.html || true
+          mkdir -p docs/test-results && cp test-report.html docs/test-results/post-scrape.html || true
           
       - name: Upload E2E Test Results
         uses: actions/upload-artifact@v7
@@ -190,7 +190,7 @@ jobs:
         run: |
           npm run test:consistency
           sed -i 's|<title>Test Report</title>|<title>Post-scrape: Consistency Tests — FREQUENTIS ROMANIA SRL</title>|;s|<h1 id="title">Test Report</h1>|<h1 id="title">Post-scrape: Consistency Tests — FREQUENTIS ROMANIA SRL</h1>|' test-report.html
-          cp test-report.html docs/test-results/post-scrape-consistency.html || true
+          mkdir -p docs/test-results && cp test-report.html docs/test-results/post-scrape-consistency.html || true
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -207,6 +207,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          mkdir -p docs/test-results
           git add docs/test-results/
           git commit -m "[skip ci] Update test results" || echo "No changes to commit"
           git push || echo "Push failed (race condition) — will be picked up next run"
