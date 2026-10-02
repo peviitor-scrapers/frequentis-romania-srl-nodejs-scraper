@@ -10,11 +10,11 @@
 | Location | JUD. CLUJ, MUN. CLUJ-NAPOCA, STR. HENRI BARBUSSE, NR.44-46, ET.1 |
 | Website | [https://www.frequentis.com](https://www.frequentis.com) |
 | Careers | [https://jobs.frequentis.com](https://jobs.frequentis.com) |
-| Last Scraped | 2026-10-01 |
+| Last Scraped | 2026-10-02 |
 
-## Current Job Listings (7)
+## Current Job Listings (6)
 
-_Generated: 2026-10-01T10:12:34.521Z_
+_Generated: 2026-10-02T11:34:07.299Z_
 
 ### System Security Specialist | SSCC \[System Security Competence Centre\]
 
@@ -28,14 +28,6 @@ _Generated: 2026-10-01T10:12:34.521Z_
 - **URL:** [https://jobs.frequentis.com/careers/JobDetail/ROU-Ocupational-Health-Safety-Resposible/3576](https://jobs.frequentis.com/careers/JobDetail/ROU-Ocupational-Health-Safety-Resposible/3576)
 - **Work Mode:** on-site
 - **Location:** Cluj-Napoca
-- **Status:** scraped
-
-### Performance Engineer - R10 FAA VoICE
-
-- **URL:** [https://jobs.frequentis.com/careers/JobDetail/ROU-Performance-Engineer-R10-FAA-VoICE/3572](https://jobs.frequentis.com/careers/JobDetail/ROU-Performance-Engineer-R10-FAA-VoICE/3572)
-- **Work Mode:** on-site
-- **Location:** Cluj-Napoca
-- **Tags:** python, docker, kubernetes, rest, microservices, devops, ci/cd
 - **Status:** scraped
 
 ### Senior System Engineer - R10 VoICE Projects
