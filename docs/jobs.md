@@ -10,11 +10,11 @@
 | Location | JUD. CLUJ, MUN. CLUJ-NAPOCA, STR. HENRI BARBUSSE, NR.44-46, ET.1 |
 | Website | [https://www.frequentis.com](https://www.frequentis.com) |
 | Careers | [https://jobs.frequentis.com](https://jobs.frequentis.com) |
-| Last Scraped | 2026-10-12 |
+| Last Scraped | 2026-10-13 |
 
-## Current Job Listings (6)
+## Current Job Listings (5)
 
-_Generated: 2026-10-12T13:51:52.177Z_
+_Generated: 2026-10-13T13:09:39.762Z_
 
 ### System Security Specialist | SSCC \[System Security Competence Centre\]
 
@@ -33,14 +33,6 @@ _Generated: 2026-10-12T13:51:52.177Z_
 ### Senior System Engineer - R10 VoICE Projects
 
 - **URL:** [https://jobs.frequentis.com/careers/JobDetail/ROU-Senior-System-Engineer-R10-VoICE-Projects/3553](https://jobs.frequentis.com/careers/JobDetail/ROU-Senior-System-Engineer-R10-VoICE-Projects/3553)
-- **Work Mode:** on-site
-- **Location:** Cluj-Napoca
-- **Tags:** python, docker, devops
-- **Status:** scraped
-
-### Lead System Engineer - R10 VoICE Projects
-
-- **URL:** [https://jobs.frequentis.com/careers/JobDetail/ROU-Lead-System-Engineer-R10-VoICE-Projects/3552](https://jobs.frequentis.com/careers/JobDetail/ROU-Lead-System-Engineer-R10-VoICE-Projects/3552)
 - **Work Mode:** on-site
 - **Location:** Cluj-Napoca
 - **Tags:** python, docker, devops
