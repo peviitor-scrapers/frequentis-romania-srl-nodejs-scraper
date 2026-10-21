@@ -10,11 +10,11 @@
 | Location | JUD. CLUJ, MUN. CLUJ-NAPOCA, STR. HENRI BARBUSSE, NR.44-46, ET.1 |
 | Website | [https://www.frequentis.com](https://www.frequentis.com) |
 | Careers | [https://jobs.frequentis.com](https://jobs.frequentis.com) |
-| Last Scraped | 2026-10-20 |
+| Last Scraped | 2026-10-21 |
 
 ## Current Job Listings (4)
 
-_Generated: 2026-10-20T10:37:44.379Z_
+_Generated: 2026-10-21T10:49:16.843Z_
 
 ### System Security Specialist | SSCC \[System Security Competence Centre\]
 
