@@ -7,14 +7,14 @@
 | CIF | 25475641 |
 | Brand | FREQUENTIS |
 | Status | activ |
-| Location | JUD. CLUJ, MUN. CLUJ-NAPOCA, STR. HENRI BARBUSSE, NR.44-46, ET.1 |
+| Location | Cluj-Napoca |
 | Website | [https://www.frequentis.com](https://www.frequentis.com) |
 | Careers | [https://jobs.frequentis.com](https://jobs.frequentis.com) |
-| Last Scraped | 2026-10-21 |
+| Last Scraped | 2026-10-22 |
 
 ## Current Job Listings (4)
 
-_Generated: 2026-10-21T10:49:16.843Z_
+_Generated: 2026-10-22T10:50:03.493Z_
 
 ### System Security Specialist | SSCC \[System Security Competence Centre\]
 
