@@ -10,11 +10,11 @@
 | Location | JUD. CLUJ, MUN. CLUJ-NAPOCA, STR. HENRI BARBUSSE, NR.44-46, ET.1 |
 | Website | [https://www.frequentis.com](https://www.frequentis.com) |
 | Careers | [https://jobs.frequentis.com](https://jobs.frequentis.com) |
-| Last Scraped | 2026-10-25 |
+| Last Scraped | 2026-10-26 |
 
-## Current Job Listings (4)
+## Current Job Listings (3)
 
-_Generated: 2026-10-25T10:22:36.560Z_
+_Generated: 2026-10-26T11:50:55.152Z_
 
 ### System Security Specialist | SSCC \[System Security Competence Centre\]
 
@@ -36,12 +36,4 @@ _Generated: 2026-10-25T10:22:36.560Z_
 - **Work Mode:** on-site
 - **Location:** Cluj-Napoca
 - **Tags:** python, docker, devops
-- **Status:** scraped
-
-### DevOps Engineer - MosaiX
-
-- **URL:** [https://jobs.frequentis.com/careers/JobDetail/ROU-DevOps-Engineer-MosaiX/3319](https://jobs.frequentis.com/careers/JobDetail/ROU-DevOps-Engineer-MosaiX/3319)
-- **Work Mode:** on-site
-- **Location:** Cluj-Napoca
-- **Tags:** python, docker, linux, microservices, devops, ci/cd, ansible, puppet
 - **Status:** scraped
