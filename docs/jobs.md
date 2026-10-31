@@ -10,17 +10,18 @@
 | Location | JUD. CLUJ, MUN. CLUJ-NAPOCA, STR. HENRI BARBUSSE, NR.44-46, ET.1 |
 | Website | [https://www.frequentis.com](https://www.frequentis.com) |
 | Careers | [https://jobs.frequentis.com](https://jobs.frequentis.com) |
-| Last Scraped | 2026-10-30 |
+| Last Scraped | 2026-10-31 |
 
 ## Current Job Listings (3)
 
-_Generated: 2026-10-30T11:51:32.998Z_
+_Generated: 2026-10-31T11:24:41.041Z_
 
-### System Security Specialist | SSCC \[System Security Competence Centre\]
+### Service Security Architect
 
-- **URL:** [https://jobs.frequentis.com/careers/JobDetail/ROU-System-Security-Specialist-SSCC-System-Security-Competence-Centre/3582](https://jobs.frequentis.com/careers/JobDetail/ROU-System-Security-Specialist-SSCC-System-Security-Competence-Centre/3582)
+- **URL:** [https://jobs.frequentis.com/careers/JobDetail/ROU-Service-Security-Architect/3704](https://jobs.frequentis.com/careers/JobDetail/ROU-Service-Security-Architect/3704)
 - **Work Mode:** on-site
 - **Location:** Cluj-Napoca
+- **Tags:** aws, azure
 - **Status:** scraped
 
 ### Occupational Health & Safety Responsible
