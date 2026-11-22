@@ -10,11 +10,11 @@
 | Location | JUD. CLUJ, MUN. CLUJ-NAPOCA, STR. HENRI BARBUSSE, NR.44-46, ET.1 |
 | Website | [https://www.frequentis.com](https://www.frequentis.com) |
 | Careers | [https://jobs.frequentis.com](https://jobs.frequentis.com) |
-| Last Scraped | 2026-11-21 |
+| Last Scraped | 2026-11-22 |
 
 ## Current Job Listings (3)
 
-_Generated: 2026-11-21T13:53:21.285Z_
+_Generated: 2026-11-22T13:46:13.887Z_
 
 ### Service Security Architect
 
